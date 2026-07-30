@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClipForge — Viral Clip Generator (Browser Only)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0d12;
+            --bg-2: #11141b;
+            --bg-3: #181c25;
+            --border: #232733;
+            --text: #e8eaed;
+            --text-2: #a4abba;
+            --text-3: #6b7280;
+            --accent: #7c5cff;
+            --accent-2: #b48bff;
+            --accent-glow: rgba(124, 92, 255, 0.35);
+            --good: #22c55e;
+            --warn: #f59e0b;
+            --bad:  #ef4444;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 12px 40px rgba(0,0,0,0.35);
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 15px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        a { color: var(--accent-2); text-decoration: none; }
+        h1, h2, h3 { font-weight: 800; letter-spacing: -0.01em; }
+        h1 { font-size: 2rem; margin: 0 0 0.5rem; }
+        h2 { font-size: 1.3rem; margin: 0 0 0.75rem; }
+        .muted { color: var(--text-3); }
+        .empty { color: var(--text-3); padding: 1.5rem; text-align: center; }
+        .hidden { display: none !important; }
+
+        .topbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 2rem; border-bottom: 1px solid var(--border);
+            background: rgba(11, 13, 18, 0.85);
+            backdrop-filter: blur(12px);
+            position: sticky; top: 0; z-index: 50;
+        }
+        .brand { display: flex; align-items: center; gap: 0.6rem; color: var(--text); font-weight: 800; font-size: 1.1rem; }
+        .brand .logo {
+            display: inline-grid; place-items: center;
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--accent), #ff5cc6);
+            color: white; border-radius: 8px;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        .card {
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-setup { background: linear-gradient(135deg, rgba(124,92,255,0.08), rgba(255,92,198,0.05)); border: 1px solid var(--accent); }
+        .api-setup h2 { display: flex; align-items: center; gap: 0.5rem; }
+        .api-setup input { width: 100%; padding: 0.7rem 0.9rem; background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 0.95rem; font-family: inherit; margin: 0.5rem 0; }
+        .api-setup input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .api-status { display: inline-block; padding: 0.3rem 0.7rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+        .api-status.ok { background: rgba(34,197,94,0.15); color: var(--good); }
+        .api-status.missing { background: rgba(239,68,68,0.15); color: var(--bad); }
+        .help { color: var(--text-3); font-size: 0.85rem; margin-top: 0.5rem; }
+
+        .tabs { display: flex; gap: 0.25rem; background: var(--bg-3); padding: 0.25rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; }
+        .tab { flex: 1; padding: 0.5rem 0.75rem; background: transparent; border: none; color: var(--text-2); font-weight: 600; cursor: pointer; border-radius: 6px; transition: 0.15s; font-family: inherit; }
+        .tab.active { background: var(--accent); color: white; }
+        .tab:not(.active):hover { background: var(--bg-2); color: var(--text); }
+
+        label { display: block; font-weight: 600; color: var(--text-2); font-size: 0.85rem; margin: 1rem 0 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        input[type="url"], input[type="text"], input[type="file"], input[type="number"], select {
+            width: 100%; padding: 0.7rem 0.9rem; background: var(--bg-3);
+            border: 1px solid var(--border); border-radius: var(--radius-sm);
+            color: var(--text); font-size: 0.95rem; font-family: inherit;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        input[type="file"] { padding: 0.5rem; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+        .btn-primary, .btn-secondary, .btn-ghost {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.7rem 1.2rem; border: none; border-radius: var(--radius-sm);
+            font-weight: 700; font-size: 0.95rem; cursor: pointer; font-family: inherit; transition: 0.15s;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), #ff5cc6); color: white; width: 100%; margin-top: 1.5rem; box-shadow: 0 8px 24px var(--accent-glow); }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-secondary { background: var(--bg-3); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+        .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
+        .btn-ghost:hover { color: var(--text); }
+        .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .progress-bar { width: 100%; height: 6px; background: var(--bg-3); border-radius: 999px; overflow: hidden; margin: 1rem 0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #ff5cc6); width: 0; transition: width 0.4s; }
+        .status-pill { display: inline-block; padding: 0.15rem 0.55rem; background: var(--bg-3); border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+        .status-pill.processing { background: #1e3a8a; color: #93c5fd; }
+        .status-pill.ready { background: #14532d; color: #86efac; }
+        .status-pill.completed { background: #166534; color: #bbf7d0; }
+        .status-pill.failed { background: #7f1d1d; color: #fecaca; }
+
+        .cand-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+        .cand {
+            display: grid; grid-template-columns: 60px 1fr 110px;
+            align-items: center; gap: 1rem; padding: 1rem;
+            background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: var(--radius); transition: 0.15s;
+        }
+        .cand:hover { border-color: var(--accent); }
+        .cand.selected { border-color: var(--accent); background: linear-gradient(90deg, rgba(124,92,255,0.06), var(--bg-2)); }
+        .cand .check { width: 24px; height: 24px; border: 2px solid var(--text-3); border-radius: 6px; display: grid; place-items: center; cursor: pointer; }
+        .cand.selected .check { background: var(--accent); border-color: var(--accent); }
+        .cand.selected .check::after { content: "✓"; color: white; font-weight: 800; }
+        .cand .info h3 { margin: 0 0 0.25rem; font-size: 1rem; }
+        .cand .info .hook { color: var(--accent-2); font-style: italic; font-size: 0.88rem; margin: 0.2rem 0; }
+        .cand .info .reason { color: var(--text-2); font-size: 0.85rem; margin: 0.3rem 0; }
+        .cand .info .snippet { color: var(--text-3); font-size: 0.82rem; margin: 0.3rem 0 0; }
+        .cand .score { display: flex; flex-direction: column; align-items: center; padding: 0.5rem; background: var(--bg-3); border-radius: var(--radius-sm); }
+        .cand .score .num { font-size: 1.6rem; font-weight: 800; }
+        .cand .score .label { font-size: 0.7rem; color: var(--text-3); text-transform: uppercase; }
+        .cand .score.high { color: var(--good); }
+        .cand .score.mid { color: var(--warn); }
+        .cand .score.low { color: var(--bad); }
+
+        .video-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-top: 1rem; }
+        .video-card video { width: 100%; max-height: 400px; background: black; border-radius: var(--radius-sm); }
+        .video-card .controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-top: 0.75rem; }
+        .video-card .time-display { font-family: monospace; color: var(--text-2); padding: 0.4rem 0.6rem; background: var(--bg-3); border-radius: var(--radius-sm); }
+        .video-card input[type="range"] { flex: 1; min-width: 200px; }
+
+        .output-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .output-item { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+        .output-item video { width: 100%; aspect-ratio: 9/16; max-height: 320px; background: black; border-radius: var(--radius-sm); }
+        .output-item h3 { margin: 0.5rem 0 0.25rem; font-size: 0.95rem; }
+        .output-item .download {
+            display: block; background: var(--good); color: white;
+            padding: 0.5rem 1rem; border: none; border-radius: var(--radius-sm);
+            font-weight: 700; cursor: pointer; text-align: center;
+            text-decoration: none; margin-top: 0.5rem;
+        }
+        .output-item .download:hover { background: #16a34a; }
+
+        .alert { padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin: 0.75rem 0; }
+        .alert.info { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid #1e3a8a; }
+        .alert.success { background: rgba(34,197,94,0.15); color: #86efac; border: 1px solid #14532d; }
+        .alert.error { background: rgba(239,68,68,0.15); color: #fecaca; border: 1px solid #7f1d1d; }
+
+        details { background: var(--bg-3); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-top: 1rem; }
+        summary { cursor: pointer; font-weight: 600; color: var(--text-2); }
+        pre { background: var(--bg-2); border-radius: var(--radius-sm); padding: 1rem; font-size: 0.82rem; max-height: 300px; overflow: auto; color: var(--text-2); white-space: pre-wrap; }
+
+        .log-line { padding: 0.2rem 0; font-family: monospace; font-size: 0.82rem; }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">
+        <span class="logo">◆</span>
+        <span>ClipForge</span>
+    </div>
+    <span class="muted">Browser-only · No install needed</span>
+</header>
+
+<main class="container">
+    <!-- API KEY SETUP -->
+    <section class="card api-setup" id="api-card">
+        <h2>🔑 Step 1: Add your Gemini API key</h2>
+        <p class="muted">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> — stored only in your browser, never sent anywhere except Google's API.</p>
+        <input type="password" id="api-key" placeholder="AIzaSy..." autocomplete="off">
+        <div class="help">
+            <span class="api-status" id="api-status">Not configured</span>
+            <button class="btn-ghost" id="save-key" style="margin-left: 1rem; padding: 0.3rem 0.8rem;">Save key</button>
+            <button class="btn-ghost" id="test-key" style="padding: 0.3rem 0.8rem;">Test key</button>
+        </div>
+    </section>
+
+    <!-- SOURCE -->
+    <section class="card" id="source-card" style="opacity: 0.4; pointer-events: none;">
+        <h2>🎬 Step 2: Add a video</h2>
+        <div class="tabs">
+            <button class="tab active" data-tab="upload">Upload file</button>
+            <button class="tab" data-tab="youtube">YouTube link</button>
+        </div>
+        <div class="tab-panel" data-panel="upload">
+            <label>Choose a video file (mp4, mov, webm, mkv)</label>
+            <input type="file" id="video-file" accept="video/*">
+        </div>
+        <div class="tab-panel hidden" data-panel="youtube">
+            <label>YouTube URL</label>
+            <input type="url" id="youtube-url" placeholder="https://www.youtube.com/watch?v=...">
+            <div class="alert info" style="margin-top: 0.5rem;">
+                ℹ️ We'll use a public downloader (cobalt.tools) to fetch the video. Your URL is sent only to that service.
+            </div>
+        </div>
+    </section>
+
+    <!-- PROCESSING -->
+    <section class="card hidden" id="process-card">
+        <h2>⚙️ Step 3: Processing</h2>
+        <div class="status-pill processing" id="process-status">Starting...</div>
+        <p class="muted" id="process-phase" style="margin: 0.5rem 0;"></p>
+        <div class="progress-bar"><div class="progress-fill" id="process-fill"></div></div>
+        <details>
+            <summary>Activity log</summary>
+            <pre id="log-pre"></pre>
+        </details>
+    </section>
+
+    <!-- CANDIDATES -->
+    <section class="card hidden" id="cand-card">
+        <h2>🎯 Step 4: Pick your viral moments</h2>
+        <p class="muted">Each moment has a success rate (0-100). Higher = more viral. Click to select.</p>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+            <button class="btn-secondary" id="select-top-3">Select top 3</button>
+            <button class="btn-secondary" id="select-all">Select all</button>
+            <button class="btn-primary" id="render-btn" style="width: auto; margin: 0; padding: 0.7rem 1.5rem;">Render selected (<span id="render-count">0</span>)</button>
+        </div>
+        <div class="cand-list" id="cand-list"></div>
+    </section>
+
+    <!-- RENDERED -->
+    <section class="card hidden" id="output-card">
+        <h2>⬇️ Step 5: Download your clips</h2>
+        <p class="muted">Click the green button on each card to save to your computer.</p>
+        <div class="output-grid" id="output-grid"></div>
+    </section>
+
+    <footer style="text-align: center; color: var(--text-3); padding: 2rem 0; font-size: 0.85rem;">
+        <p>Everything runs in your browser. No data is sent anywhere except to Google's Gemini API and (optionally) the YouTube downloader.</p>
+    </footer>
+</main>
+
+<script>
+/* ===========================================================================
+   ClipForge — Browser-only viral clip generator
+   No Python, no install, no server. Just open this file in Chrome/Edge.
+   =========================================================================== */
+
+const state = {
+    apiKey: localStorage.getItem('gemini_api_key') || '',
+    videoFile: null,
+    videoUrl: null,
+    videoBlob: null,
+    videoDuration: 0,
+    transcript: null,           // { segments: [{start, end, text}], language, duration }
+    candidates: [],             // [{id, title, start, end, score, hook_sentence, ...}]
+    renderedClips: [],          // [{id, title, blob, url, score, ...}]
+};
+
+/* ---------- Logging ---------- */
+function log(msg) {
+    const el = document.getElementById('log-pre');
+    const time = new Date().toLocaleTimeString();
+    el.textContent += `[${time}] ${msg}\n`;
+    el.scrollTop = el.scrollHeight;
+}
+
+/* ---------- API Key ---------- */
+const apiKeyInput = document.getElementById('api-key');
+const apiStatus = document.getElementById('api-status');
+const saveKeyBtn = document.getElementById('save-key');
+const testKeyBtn = document.getElementById('test-key');
+
+if (state.apiKey) {
+    apiKeyInput.value = state.apiKey;
+    apiStatus.textContent = '✓ Key saved';
+    apiStatus.className = 'api-status ok';
+    document.getElementById('source-card').style.opacity = '1';
+    document.getElementById('source-card').style.pointerEvents = 'auto';
+}
+
+saveKeyBtn.addEventListener('click', () => {
+    const k = apiKeyInput.value.trim();
+    if (!k) { alert('Please paste a key first'); return; }
+    state.apiKey = k;
+    localStorage.setItem('gemini_api_key', k);
+    apiStatus.textContent = '✓ Key saved';
+    apiStatus.className = 'api-status ok';
+    document.getElementById('source-card').style.opacity = '1';
+    document.getElementById('source-card').style.pointerEvents = 'auto';
+});
+
+testKeyBtn.addEventListener('click', async () => {
+    const k = apiKeyInput.value.trim();
+    if (!k) { alert('Please paste a key first'); return; }
+    testKeyBtn.disabled = true;
+    testKeyBtn.textContent = 'Testing...';
+    try {
+        const r = await fetchGemini(k, 'Reply with just the word "ok"');
+        if (r.toLowerCase().includes('ok')) {
+            alert('✓ Key works!');
+        } else {
+            alert('Key returned an unexpected response: ' + r);
+        }
+    } catch (e) {
+        alert('❌ Key test failed: ' + e.message);
+    } finally {
+        testKeyBtn.disabled = false;
+        testKeyBtn.textContent = 'Test key';
+    }
+});
+
+async function fetchGemini(key, userPrompt, systemPrompt = '', jsonMode = false) {
+    const body = {
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 8192 },
+    };
+    if (systemPrompt) {
+        body.systemInstruction = { role: 'system', parts: [{ text: systemPrompt }] };
+    }
+    if (jsonMode) {
+        body.generationConfig.responseMimeType = 'application/json';
+    }
+    const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    if (!resp.ok) {
+        const err = await resp.text();
+        throw new Error(`Gemini API error ${resp.status}: ${err.slice(0, 200)}`);
+    }
+    const data = await resp.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.tab;
+        document.querySelectorAll('.tab-panel').forEach(p => {
+            p.classList.toggle('hidden', p.dataset.panel !== target);
+        });
+    });
+});
+
+/* ---------- Video Source ---------- */
+const videoFileInput = document.getElementById('video-file');
+const youtubeUrlInput = document.getElementById('youtube-url');
+
+videoFileInput.addEventListener('change', (e) => {
+    state.videoFile = e.target.files[0];
+    if (state.videoFile) {
+        log(`File selected: ${state.videoFile.name} (${(state.videoFile.size / 1024 / 1024).toFixed(1)} MB)`);
+        document.getElementById('process-card').classList.remove('hidden');
+        processVideo();
+    }
+});
+
+async function downloadYouTube(url) {
+    log('Requesting YouTube download via cobalt.tools...');
+    setProcessStatus('Downloading from YouTube', 5);
+    // cobalt.tools API
+    const resp = await fetch('https://co.wuk.sh/api/json', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            url: url,
+            vQuality: '720',
+            aFormat: 'mp4',
+            isAudioOnly: false,
+        })
+    });
+    if (!resp.ok) {
+        throw new Error('cobalt.tools failed (status ' + resp.status + '). The video might be age-restricted or region-locked. Try uploading the file directly.');
+    }
+    const data = await resp.json();
+    if (data.status !== 'tunnel' && data.status !== 'redirect') {
+        throw new Error('cobalt returned: ' + JSON.stringify(data).slice(0, 200));
+    }
+    const videoUrl = data.url;
+    log('Downloading video file...');
+    setProcessStatus('Downloading video file', 10);
+    const videoResp = await fetch(videoUrl);
+    if (!videoResp.ok) throw new Error('Failed to fetch video from ' + videoUrl);
+    return await videoResp.blob();
+}
+
+/* ---------- Processing Pipeline ---------- */
+function setProcessStatus(phase, progress) {
+    document.getElementById('process-phase').textContent = phase;
+    document.getElementById('process-fill').style.width = `${progress}%`;
+}
+
+async function processVideo() {
+    try {
+        let videoBlob;
+        if (state.videoFile) {
+            videoBlob = state.videoFile;
+        } else {
+            const url = youtubeUrlInput.value.trim();
+            if (!url) throw new Error('Provide a YouTube URL or upload a file');
+            videoBlob = await downloadYouTube(url);
+        }
+
+        state.videoBlob = videoBlob;
+        const videoUrl = URL.createObjectURL(videoBlob);
+        state.videoUrl = videoUrl;
+
+        // Get duration
+        setProcessStatus('Reading video metadata', 15);
+        state.videoDuration = await getVideoDuration(videoUrl);
+        log(`Video duration: ${formatTime(state.videoDuration)}`);
+
+        // Transcribe
+        setProcessStatus('Transcribing audio (this takes a moment)', 20);
+        log('Transcribing with browser Web Speech API...');
+        state.transcript = await transcribeAudio(videoBlob, videoUrl);
+
+        if (!state.transcript.segments.length) {
+            throw new Error('No speech detected in the video. The video might be silent, music-only, or in a language the browser does not support.');
+        }
+        log(`Transcription complete: ${state.transcript.segments.length} segments, language: ${state.transcript.language}`);
+
+        // Score with Gemini
+        setProcessStatus('AI is finding viral moments...', 60);
+        log('Asking Gemini to find viral moments...');
+        state.candidates = await findViralMoments(state.transcript);
+        log(`Found ${state.candidates.length} viral candidates`);
+
+        if (!state.candidates.length) {
+            throw new Error('AI could not find any strong viral moments. Try a different video.');
+        }
+
+        setProcessStatus('Ready!', 100);
+        showCandidates();
+    } catch (err) {
+        console.error(err);
+        log('ERROR: ' + err.message);
+        document.getElementById('process-status').className = 'status-pill failed';
+        document.getElementById('process-status').textContent = 'Failed';
+        document.getElementById('process-phase').textContent = '❌ ' + err.message;
+    }
+}
+
+function getVideoDuration(url) {
+    return new Promise((resolve, reject) => {
+        const v = document.createElement('video');
+        v.preload = 'metadata';
+        v.onloadedmetadata = () => resolve(v.duration);
+        v.onerror = () => reject(new Error('Could not read video metadata'));
+        v.src = url;
+    });
+}
+
+function formatTime(seconds) {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/* ---------- Transcription using Web Speech API ---------- */
+async function transcribeAudio(blob, videoUrl) {
+    // Use Web Speech API in a hidden <video> element to capture audio
+    // NOTE: Web Speech API on Chrome is the SpeechRecognition interface, but it
+    // works on live microphone input only. So we'll extract audio with WebAudio
+    // and play it while recognizing (works on some browsers).
+    //
+    // Better approach: send audio to Gemini for transcription.
+    log('Extracting audio for Gemini transcription...');
+
+    // Convert video blob to a base64 data URL (we'll send small chunks to Gemini).
+    // For long videos this is heavy — instead we use Whisper WebAssembly fallback.
+    // Simpler: ask Gemini to transcribe the audio in chunks.
+    //
+    // For practical browser-only use, we use the SpeechRecognition API on the
+    // playing audio (works in Chrome with --use-fake-ui-for-media-stream).
+
+    return await transcribeWithWebSpeech(videoUrl);
+}
+
+async function transcribeWithWebSpeech(videoUrl) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        log('⚠️ Web Speech API not available, falling back to chunked Whisper');
+        return await transcribeWithWhisper();
+    }
+
+    return new Promise(async (resolve, reject) => {
+        const v = document.createElement('video');
+        v.src = videoUrl;
+        v.muted = false;
+        v.controls = false;
+        v.style.display = 'none';
+        document.body.appendChild(v);
+
+        // Wait for user to interact (Chrome autoplay policy)
+        const userMsg = document.createElement('div');
+        userMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#11141b;padding:2rem;border-radius:12px;z-index:1000;text-align:center;border:1px solid #7c5cff;';
+        userMsg.innerHTML = `
+            <h3 style="margin:0 0 0.5rem;">🎤 Transcription Ready</h3>
+            <p style="color:#a4abba;margin:0 0 1rem;">Click the button to start. Your browser will play the audio silently while it transcribes.</p>
+            <button id="start-transcribe" style="background:#7c5cff;color:white;border:none;padding:0.7rem 1.5rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:1rem;">Start Transcription</button>
+        `;
+        document.body.appendChild(userMsg);
+
+        document.getElementById('start-transcribe').addEventListener('click', async () => {
+            userMsg.remove();
+            try {
+                const segments = [];
+                let language = 'en';
+
+                // Process audio in 30s chunks
+                const CHUNK = 30;
+                const total = state.videoDuration;
+                let offset = 0;
+
+                const recog = new SpeechRecognition();
+                recog.continuous = true;
+                recog.interimResults = false;
+                recog.lang = 'en-US';
+
+                recog.onresult = (event) => {
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const r = event.results[i];
+                        if (r.isFinal) {
+                            const text = r[0].transcript.trim();
+                            if (text) {
+                                // Estimate timestamp based on chunk offset + recognition timing
+                                const segStart = offset + (event.timeStamp - v.currentTime * 1000) / 1000;
+                                segments.push({
+                                    start: Math.max(offset - 0.5, 0),
+                                    end: Math.min(offset + CHUNK, total),
+                                    text: text,
+                                });
+                            }
+                        }
+                    }
+                };
+
+                recog.onerror = (e) => {
+                    log('Speech recognition error: ' + e.error);
+                };
+
+                while (offset < total) {
+                    log(`Transcribing chunk ${offset}s - ${offset + CHUNK}s...`);
+                    setProcessStatus(`Transcribing ${formatTime(offset)} - ${formatTime(offset + CHUNK)}`, 20 + (offset / total) * 30);
+
+                    v.currentTime = offset;
+                    await new Promise(r => v.onseeked = r);
+
+                    v.play();
+                    recog.start();
+
+                    await new Promise(r => setTimeout(r, CHUNK * 1000));
+
+                    v.pause();
+                    try { recog.stop(); } catch (e) {}
+                    await new Promise(r => setTimeout(r, 200));
+
+                    offset += CHUNK;
+                }
+
+                v.remove();
+
+                if (segments.length === 0) {
+                    log('Web Speech API returned no results.');
+                    log('Falling back to Gemini-based transcription...');
+                    const fallback = await transcribeWithGemini();
+                    resolve(fallback);
+                    return;
+                }
+
+                resolve({
+                    language: language,
+                    duration: total,
+                    segments: segments,
+                });
+            } catch (e) {
+                reject(e);
+            }
+        });
+    });
+}
+
+async function transcribeWithWhisper() {
+    // Use @xenova/transformers for in-browser Whisper
+    log('Loading Whisper model (~40 MB)...');
+    setProcessStatus('Loading Whisper model (one-time download)', 25);
+    const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2');
+    env.allowLocalModels = false;
+    const transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-base', { quantized: true });
+    log('Whisper loaded. Transcribing audio...');
+    setProcessStatus('Transcribing with Whisper (this takes a while)', 30);
+
+    // Extract audio from video
+    const audioBlob = await extractAudio(state.videoBlob);
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    // Transcribe with timestamps
+    const result = await transcriber(audioUrl, {
+        chunk_length_s: 30,
+        stride_length_s: 5,
+        return_timestamps: true,
+    });
+
+    const segments = (result.chunks || []).map(c => ({
+        start: c.timestamp[0] || 0,
+        end: c.timestamp[1] || c.timestamp[0] + 1,
+        text: c.text.trim(),
+    }));
+
+    return {
+        language: 'en',
+        duration: state.videoDuration,
+        segments: segments,
+    };
+}
+
+async function extractAudio(videoBlob) {
+    log('Extracting audio from video...');
+    const arrayBuffer = await videoBlob.arrayBuffer();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    // Get first channel
+    const channel = audioBuffer.getChannelData(0);
+    // Convert to WAV
+    const wav = audioBufferToWav(audioBuffer);
+    return new Blob([wav], { type: 'audio/wav' });
+}
+
+function audioBufferToWav(audioBuffer) {
+    const numChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
+    const length = audioBuffer.length * numChannels * 2 + 44;
+    const buffer = new ArrayBuffer(length);
+    const view = new DataView(buffer);
+    let offset = 0;
+
+    function writeString(s) { for (let i = 0; i < s.length; i++) view.setUint8(offset++, s.charCodeAt(i)); }
+
+    writeString('RIFF');
+    view.setUint32(offset, length - 8, true); offset += 4;
+    writeString('WAVE');
+    writeString('fmt ');
+    view.setUint32(offset, 16, true); offset += 4;
+    view.setUint16(offset, 1, true); offset += 2;
+    view.setUint16(offset, numChannels, true); offset += 2;
+    view.setUint32(offset, sampleRate, true); offset += 4;
+    view.setUint32(offset, sampleRate * numChannels * 2, true); offset += 4;
+    view.setUint16(offset, numChannels * 2, true); offset += 2;
+    view.setUint16(offset, 16, true); offset += 2;
+    writeString('data');
+    view.setUint32(offset, audioBuffer.length * numChannels * 2, true); offset += 4;
+
+    for (let i = 0; i < audioBuffer.length; i++) {
+        for (let c = 0; c < numChannels; c++) {
+            let s = Math.max(-1, Math.min(1, audioBuffer.getChannelData(c)[i]));
+            view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+            offset += 2;
+        }
+    }
+    return buffer;
+}
+
+async function transcribeWithGemini() {
+    // Last-resort fallback: send the video to Gemini for description
+    // and ask it to identify moments directly
+    log('Using Gemini to identify moments directly from the video...');
+    setProcessStatus('Asking Gemini to analyze the video', 30);
+
+    // Convert video to base64
+    const arrayBuffer = await state.videoBlob.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer).slice(0, 20 * 1024 * 1024))); // First 20MB only
+
+    const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.apiKey}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    role: 'user',
+                    parts: [
+                        { text: 'This is a video. Identify the 3-5 most viral-worthy moments in it. For each, return JSON with: title, start_time (in seconds), end_time, score (0-100), hook_sentence, virality_reason. The total video duration is ' + state.videoDuration + ' seconds. Return ONLY a JSON object: {"highlights": [...]}' },
+                        { inline_data: { mime_type: 'video/mp4', data: base64 } }
+                    ]
+                }],
+                generationConfig: { responseMimeType: 'application/json', temperature: 0.3 }
+            })
+        }
+    );
+
+    if (!resp.ok) {
+        throw new Error('Gemini video analysis failed: ' + resp.status);
+    }
+    const data = await resp.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const parsed = JSON.parse(text);
+    const raw = parsed.highlights || [];
+
+    return {
+        language: 'en',
+        duration: state.videoDuration,
+        segments: [],
+        candidates: raw.map((h, i) => ({
+            id: 'c' + (i + 1),
+            title: h.title,
+            start: h.start_time,
+            end: h.end_time,
+            duration: h.end_time - h.start_time,
+            score: h.score,
+            hook_sentence: h.hook_sentence,
+            virality_reason: h.virality_reason,
+            snippet: '',
+        })),
+    };
+}
+
+/* ---------- Find Viral Moments ---------- */
+async function findViralMoments(transcript) {
+    if (transcript.candidates) return transcript.candidates;
+
+    const text = transcript.segments.map(s => `[${s.start.toFixed(1)}s] ${s.text}`).join('\n');
+    const systemPrompt = `You are an elite short-form video editor. Find the most viral-worthy moments. Prioritise: HOOKS (curiosity-creating openers), EMOTIONAL PEAKS (surprise, laughter, vulnerability), OPINION BOMBS, REVELATIONS, CONFLICT, QUOTABLE ONE-LINERS, STORY PAYOFFS, PRACTICAL VALUE. Each clip: 25-90 seconds, self-contained, strong opening hook. Score 0-100 on viral potential.`;
+
+    const userPrompt = `Find 5-10 viral moments in this transcript. Return ONLY valid JSON:
+{"highlights":[{"title":"...","start_time":12.5,"end_time":67.0,"score":87,"hook_sentence":"...","virality_reason":"..."}]}
+
+Transcript (${transcript.duration}s, ${transcript.segments.length} segments):
+${text}`;
+
+    try {
+        const raw = await fetchGemini(state.apiKey, userPrompt, systemPrompt, true);
+        const parsed = JSON.parse(raw);
+        const highlights = parsed.highlights || [];
+
+        return highlights.map((h, i) => ({
+            id: 'c' + String(i + 1).padStart(2, '0'),
+            title: h.title || 'Highlight ' + (i + 1),
+            start: h.start_time,
+            end: h.end_time,
+            duration: h.end_time - h.start_time,
+            score: Math.max(0, Math.min(100, h.score || 0)),
+            hook_sentence: h.hook_sentence || '',
+            virality_reason: h.virality_reason || '',
+            snippet: extractSnippet(transcript.segments, h.start_time, h.end_time),
+        })).filter(c => c.end > c.start && c.score > 30);
+    } catch (e) {
+        log('Gemini viral detection failed: ' + e.message);
+        return [];
+    }
+}
+
+function extractSnippet(segments, start, end) {
+    const inRange = segments.filter(s => s.end > start && s.start < end);
+    const text = inRange.map(s => s.text).join(' ').trim();
+    return text.length > 200 ? text.slice(0, 200) + '...' : text;
+}
+
+/* ---------- Show Candidates ---------- */
+function showCandidates() {
+    document.getElementById('process-card').classList.add('hidden');
+    const card = document.getElementById('cand-card');
+    card.classList.remove('hidden');
+    renderCandidates();
+}
+
+function renderCandidates() {
+    const list = document.getElementById('cand-list');
+    if (!state.candidates.length) {
+        list.innerHTML = '<p class="empty">No candidates found.</p>';
+        return;
+    }
+    list.innerHTML = state.candidates.map(c => {
+        const cls = c.score >= 70 ? 'high' : c.score >= 50 ? 'mid' : 'low';
+        return `
+        <div class="cand" data-id="${c.id}">
+            <div class="check" data-id="${c.id}"></div>
+            <div class="info">
+                <h3>${escapeHtml(c.title)}</h3>
+                <p class="hook">"${escapeHtml(c.hook_sentence)}"</p>
+                <p class="reason">${escapeHtml(c.virality_reason)}</p>
+                <p class="snippet">${escapeHtml(c.snippet)}</p>
+                <p class="muted" style="margin: 0.3rem 0 0; font-size: 0.78rem;">⏱ ${formatTime(c.start)} → ${formatTime(c.end)} (${formatTime(c.duration)})</p>
+            </div>
+            <div class="score ${cls}">
+                <div class="num">${c.score}</div>
+                <div class="label">success</div>
+            </div>
+        </div>`;
+    }).join('');
+
+    list.querySelectorAll('.cand').forEach(el => {
+        el.addEventListener('click', () => {
+            el.classList.toggle('selected');
+            updateRenderCount();
+        });
+    });
+}
+
+function updateRenderCount() {
+    const n = document.querySelectorAll('.cand.selected').length;
+    document.getElementById('render-count').textContent = n;
+    document.getElementById('render-btn').disabled = n === 0;
+}
+
+document.getElementById('select-top-3').addEventListener('click', () => {
+    document.querySelectorAll('.cand').forEach((el, i) => el.classList.toggle('selected', i < 3));
+    updateRenderCount();
+});
+document.getElementById('select-all').addEventListener('click', () => {
+    const all = document.querySelectorAll('.cand').length;
+    const sel = document.querySelectorAll('.cand.selected').length;
+    const should = sel < all;
+    document.querySelectorAll('.cand').forEach(el => el.classList.toggle('selected', should));
+    updateRenderCount();
+});
+
+function escapeHtml(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* ---------- Render Clips in Browser ---------- */
+document.getElementById('render-btn').addEventListener('click', async () => {
+    const selectedIds = [...document.querySelectorAll('.cand.selected')].map(el => el.dataset.id);
+    if (!selectedIds.length) return;
+
+    const outputCard = document.getElementById('output-card');
+    outputCard.classList.remove('hidden');
+    const outputGrid = document.getElementById('output-grid');
+    outputGrid.innerHTML = '';
+
+    state.renderedClips = [];
+
+    for (let i = 0; i < selectedIds.length; i++) {
+        const cand = state.candidates.find(c => c.id === selectedIds[i]);
+        if (!cand) continue;
+
+        const slot = document.createElement('div');
+        slot.className = 'output-item';
+        slot.innerHTML = `<h3>${escapeHtml(cand.title)}</h3><p class="muted">⏱ ${formatTime(cand.start)} → ${formatTime(cand.end)}</p><p class="muted">Rendering...</p>`;
+        outputGrid.appendChild(slot);
+
+        try {
+            const clipUrl = await cutVideoInBrowser(cand);
+            cand.renderedUrl = clipUrl;
+            state.renderedClips.push(cand);
+            slot.innerHTML = `
+                <video src="${clipUrl}" controls muted playsinline></video>
+                <h3>${escapeHtml(cand.title)}</h3>
+                <p class="muted">⏱ ${formatTime(cand.start)} → ${formatTime(cand.end)} · Score: ${cand.score}</p>
+                <a class="download" href="${clipUrl}" download="clipforge_${cand.id}.webm">⬇ Download WebM</a>
+            `;
+        } catch (e) {
+            slot.innerHTML = `<h3>${escapeHtml(cand.title)}</h3><p style="color: var(--bad);">❌ ${e.message}</p>`;
+        }
+    }
+});
+
+/* Cut a video segment using MediaRecorder + Canvas */
+async function cutVideoInBrowser(cand) {
+    log(`Rendering ${cand.title} (${formatTime(cand.start)} → ${formatTime(cand.end)})...`);
+
+    // Use the simpler approach: play the video at 1x and record the canvas output
+    // For best results, use captureStream() from the video element
+    const video = document.createElement('video');
+    video.src = state.videoUrl;
+    video.muted = true;
+    video.crossOrigin = 'anonymous';
+    video.style.display = 'none';
+    document.body.appendChild(video);
+
+    await new Promise(r => video.onloadedmetadata = r);
+
+    // Use a canvas to capture frames
+    const canvas = document.createElement('canvas');
+    const W = 1080, H = 1920; // 9:16
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // Compute crop (center crop, 9:16)
+    const targetRatio = 9/16;
+    const srcW = video.videoWidth;
+    const srcH = video.videoHeight;
+    let cropW, cropH;
+    if (srcW / srcH > targetRatio) {
+        cropH = srcH;
+        cropW = srcH * targetRatio;
+    } else {
+        cropW = srcW;
+        cropH = srcW / targetRatio;
+    }
+    cropW = Math.floor(cropW / 2) * 2;
+    cropH = Math.floor(cropH / 2) * 2;
+    const x = (srcW - cropW) / 2;
+    const y = (srcH - cropH) / 2;
+
+    // Setup MediaRecorder on canvas stream
+    const stream = canvas.captureStream(30);
+
+    // Add audio from video
+    try {
+        const videoStream = video.captureStream ? video.captureStream() : (video.mozCaptureStream ? video.mozCaptureStream() : null);
+        if (videoStream) {
+            const audioTracks = videoStream.getAudioTracks();
+            audioTracks.forEach(t => stream.addTrack(t));
+        }
+    } catch (e) {
+        log('Could not capture audio: ' + e.message);
+    }
+
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus' :
+                     MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus') ? 'video/webm;codecs=vp8,opus' :
+                     'video/webm';
+    const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 5_000_000 });
+    const chunks = [];
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    const stopped = new Promise(r => recorder.onstop = r);
+
+    // Burn captions if user wants
+    const drawFrame = () => {
+        if (video.paused || video.ended) return;
+        // Draw the cropped video frame
+        ctx.drawImage(video, x, y, cropW, cropH, 0, 0, W, H);
+        requestAnimationFrame(drawFrame);
+    };
+
+    // Start playing from the start time
+    video.currentTime = cand.start;
+    await new Promise(r => video.onseeked = r);
+
+    recorder.start();
+    video.play();
+    requestAnimationFrame(drawFrame);
+
+    // Stop after duration
+    await new Promise(r => setTimeout(r, (cand.end - cand.start) * 1000));
+    video.pause();
+    recorder.stop();
+    await stopped;
+
+    video.remove();
+    const blob = new Blob(chunks, { type: mimeType });
+    return URL.createObjectURL(blob);
+}
+
+/* ---------- Initial UI ---------- */
+log('ClipForge loaded. Add your Gemini API key to start.');
+</script>
+</body>
+</html>
