@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClipForge — viral clips from any YouTube link</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="topbar">
+    <a href="/" class="brand">
+        <span class="logo">◆</span>
+        <span>ClipForge</span>
+    </a>
+    <nav>
+        <a href="/" class="active">New clip</a>
+        <a href="/templates">Templates</a>
+        <a href="#" id="nav-history">History</a>
+        <a href="https://github.com/lasithkaushan850-svg/clipping" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+</header>
+
+<main class="hero">
+    <section class="hero-copy">
+        <h1>Turn long videos into <span class="hl">viral clips</span> — free.</h1>
+        <p class="lede">
+            Paste a YouTube link (or upload a long video) and ClipForge finds the
+            most viral moments, scores them with AI, reframes to 9:16 with face
+            tracking, and burns in animated word-by-word captions. You only get the
+            download button after you've picked the clips you actually want.
+        </p>
+
+        <div class="badges">
+            <span class="badge">🤖 Gemini-powered</span>
+            <span class="badge">🎙️ Whisper transcription</span>
+            <span class="badge">🎯 6 caption styles</span>
+            <span class="badge">📐 9:16 / 1:1 / 16:9</span>
+            <span class="badge">💸 100% free</span>
+        </div>
+    </section>
+
+    <section class="hero-form">
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" data-tab="youtube">YouTube link</button>
+                <button class="tab" data-tab="upload">Upload file</button>
+            </div>
+
+            <form id="job-form" class="form" enctype="multipart/form-data">
+                <div class="tab-panel" data-panel="youtube">
+                    <label>YouTube URL</label>
+                    <input
+                        type="url"
+                        name="youtube_url"
+                        id="youtube_url"
+                        placeholder="https://www.youtube.com/watch?v=…"
+                        required
+                    >
+                    <p class="hint">Works for any YouTube video — up to 2-hour long.</p>
+                </div>
+
+                <div class="tab-panel hidden" data-panel="upload">
+                    <label>Video file</label>
+                    <input type="file" name="video" id="video" accept="video/*">
+                    <p class="hint">MP4, MKV, MOV or WEBM. Any length.</p>
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <label>Aspect ratio</label>
+                        <select name="aspect_ratio">
+                            <option value="9:16" selected>9:16 (TikTok / Reels / Shorts)</option>
+                            <option value="1:1">1:1 (Instagram feed)</option>
+                            <option value="16:9">16:9 (YouTube)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Source resolution</label>
+                        <select name="resolution">
+                            <option value="480">480p (faster)</option>
+                            <option value="720" selected>720p (recommended)</option>
+                            <option value="1080">1080p (slower, best quality)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Caption style</label>
+                        <select name="caption_style">
+                            <option value="hormozi" selected>Hormozi (cyan highlight)</option>
+                            <option value="mrbeast">MrBeast (yellow / orange)</option>
+                            <option value="karaoke">Karaoke (wipe)</option>
+                            <option value="minimal">Minimal (subtle)</option>
+                            <option value="bounce">Bounce (neon)</option>
+                            <option value="classic">Classic (yellow)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Max candidates</label>
+                        <input type="number" name="max_candidates" value="10" min="3" max="20">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submit-btn">
+                    <span class="btn-label">Find viral moments</span>
+                    <span class="spinner hidden"></span>
+                </button>
+                <p class="form-error" id="form-error"></p>
+            </form>
+        </div>
+    </section>
+</main>
+
+<section class="recent">
+    <div class="section-head">
+        <h2>Recent jobs</h2>
+        <button id="refresh-jobs" class="btn-ghost">↻ refresh</button>
+    </div>
+    <div id="jobs-list" class="jobs-grid">
+        <p class="empty">No jobs yet — paste a YouTube link above to get started.</p>
+    </div>
+</section>
+
+<footer>
+    <p>
+        Built with
+        <a href="https://github.com/RafaelGodoyEbert/ViralCutter" target="_blank" rel="noopener">ViralCutter</a>,
+        <a href="https://github.com/Anil-matcha/AI-Youtube-Shorts-Generator" target="_blank" rel="noopener">AI-YouTube-Shorts-Generator</a> and
+        <a href="https://github.com/nicolaigaina/ai-video-captions" target="_blank" rel="noopener">ai-video-captions</a>.
+        100% local. Your videos never leave your machine.
+    </p>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

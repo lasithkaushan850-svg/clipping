@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClipForge · Job {{ job_id }}</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body data-page="job" data-job-id="{{ job_id }}">
+<header class="topbar">
+    <a href="/" class="brand">
+        <span class="logo">◆</span>
+        <span>ClipForge</span>
+    </a>
+    <nav>
+        <a href="/">New clip</a>
+        <a href="/templates">Templates</a>
+        <a href="#" id="nav-history">History</a>
+        <a href="https://github.com/lasithkaushan850-svg/clipping" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+</header>
+
+<main class="job-page">
+    <section class="job-header card" id="job-header">
+        <div class="thumb" id="job-thumb"></div>
+        <div class="meta">
+            <h1 id="job-title">Loading…</h1>
+            <p class="sub" id="job-sub"></p>
+            <div class="status-row">
+                <span class="status-pill" id="job-status">queued</span>
+                <span class="phase" id="job-phase"></span>
+                <span class="progress-text" id="job-progress">0%</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        </div>
+        <div class="actions">
+            <button class="btn-ghost" id="delete-job" title="Delete this job">🗑 delete</button>
+        </div>
+    </section>
+
+    <section class="candidates" id="candidates-section" hidden>
+        <div class="section-head">
+            <h2>Viral moments <span class="muted" id="cand-count"></span></h2>
+            <div class="bulk-actions">
+                <select id="bulk-style" title="Apply caption style to all">
+                    <option value="">— change style —</option>
+                    <option value="hormozi">Hormozi</option>
+                    <option value="mrbeast">MrBeast</option>
+                    <option value="karaoke">Karaoke</option>
+                    <option value="minimal">Minimal</option>
+                    <option value="bounce">Bounce</option>
+                    <option value="classic">Classic</option>
+                </select>
+                <button class="btn-secondary" id="select-top-3">Select top 3</button>
+                <button class="btn-secondary" id="select-all">Select all</button>
+                <button class="btn-primary" id="render-btn" disabled>
+                    Render selected (<span id="render-count">0</span>)
+                </button>
+            </div>
+        </div>
+        <div class="cand-list" id="cand-list"></div>
+    </section>
+
+    <section class="rendered" id="rendered-section" hidden>
+        <div class="section-head">
+            <h2>Rendered clips <span class="muted">— ready to download</span></h2>
+        </div>
+        <div class="rendered-list" id="rendered-list"></div>
+    </section>
+
+    <section class="log-section">
+        <details>
+            <summary>Activity log</summary>
+            <pre id="log-pre">Loading…</pre>
+        </details>
+    </section>
+</main>
+
+<div class="modal hidden" id="player-modal">
+    <div class="modal-content">
+        <button class="modal-close" id="modal-close">✕</button>
+        <video id="modal-video" controls playsinline></video>
+        <div class="modal-meta" id="modal-meta"></div>
+    </div>
+</div>
+
+<script src="/static/job.js"></script>
+</body>
+</html>

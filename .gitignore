@@ -1,0 +1,45 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+
+# Node
+node_modules/
+.next/
+.nuxt/
+.parcel-cache/
+.output/
+
+# App runtime state
+data/jobs/*
+!data/jobs/.gitkeep
+data/uploads/*
+!data/uploads/.gitkeep
+data/outputs/*
+!data/outputs/.gitkeep
+data/sources/*
+!data/sources/.gitkeep
+*.log
+.env
+.env.local
+
+# Vendored repos keep their own .git for future updates
+vendor/*/.git/
